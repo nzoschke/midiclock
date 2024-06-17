@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -33,25 +34,28 @@ func mainE() error {
 	if err != nil {
 		return xerrors.Errorf(": %w", err)
 	}
-
-	tick := 0
-	ticker := time.NewTicker(clock.Dur(165.0))
-
 	send(midi.Start())
+
+	bpm := 120.0
+	tickNum := -1
+	tickTime := time.Now()
+	ticker := time.NewTicker(clock.Dur(bpm))
 
 	for {
 		select {
 		case s := <-sig:
 			slog.Info("main", "signal", s)
 			return nil
-		case <-ticker.C:
-			if tick%24 == 0 {
-				slog.Info("main", "send", "clock")
-			}
-			tick++
-
+		case t := <-ticker.C:
 			if err := send(midi.TimingClock()); err != nil {
 				return xerrors.Errorf(": %w", err)
+			}
+
+			dur := t.Sub(tickTime)
+			tickTime = t
+			tickNum++
+			if tickNum%24 == 0 {
+				slog.Info("main", "send", "clock", "bpm", fmt.Sprintf("%.1f", bpm), "beat", tickNum/24, "dur", dur)
 			}
 		}
 	}
