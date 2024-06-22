@@ -36,7 +36,7 @@ func mainE() error {
 	}
 	send(midi.Start())
 
-	bpm := 120.0
+	bpm := 160.0
 	tickNum := -1
 	tickTime := time.Now()
 	ticker := time.NewTicker(clock.Dur(bpm))
